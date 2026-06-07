@@ -1,0 +1,172 @@
+{
+  "name": "Auto-Ingesta Obsidian a Organismo",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "folder",
+        "path": "/vault/50_Entrada",
+        "events": [
+          "add"
+        ],
+        "options": {
+          "ignore": ".*",
+          "depth": 1
+        }
+      },
+      "id": "watch-obsidian-folder",
+      "name": "Local File Trigger",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.path }}"
+      },
+      "id": "read-markdown-file",
+      "name": "Read / Write Files",
+      "type": "n8n-nodes-base.readWriteFiles",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "texto",
+              "value": "={{ $json.data }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $('Local File Trigger').item.json.name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-payload",
+      "name": "Prepare Payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://lightrag:8000/refinar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $json.texto }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $json.contexto }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-to-lightrag",
+      "name": "Send to LightRAG (Graphiti)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        850,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://memgraph_rag_server:7688/indexar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $json.texto }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $json.contexto }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-to-memgraph",
+      "name": "Send to MemgraphRAG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        850,
+        420
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Local File Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read / Write Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read / Write Files": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Send to LightRAG (Graphiti)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send to MemgraphRAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7d750fa-a20c-4395-9279-d5c80dbb54c8",
+  "id": "b1Mtk62c9zD09Xy5",
+  "meta": {
+    "instanceId": "8b9e4a3b1d1f053cb37ebba8b4a0f4a8607106428d0859c7f2ef0fb54db7f7b3"
+  },
+  "tags": []
+}

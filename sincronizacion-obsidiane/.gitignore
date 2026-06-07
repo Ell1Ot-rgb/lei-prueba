@@ -1,0 +1,34 @@
+# Credenciales y configuración sensible
+.env
+*.env
+
+# Cachés de Python e IDEs
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.idea/
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Archivos de estado y serialización locales
+*.pkl
+*.db
+*.log
+
+# Evitar subir archivos temporales de LightRAG
+/dict_*.json
+/kv_*.json
+/graph_*.json
+/chunks_*.json
+/doc_*.json
+/vector_*.json
+/embeddings_*.json
+
+# Evitar bases vectoriales locales
+*.chroma
+*.index
+*.vectors

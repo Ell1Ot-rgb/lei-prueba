@@ -1,0 +1,98 @@
+# Requisitos para Sistema YO Estructural v3.0
+# ============================================
+
+# Framework web
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Base de datos y conectores
+neo4j==5.15.0
+supabase==2.1.1
+psycopg2-binary==2.9.9
+
+# Procesamiento de texto y ML
+scikit-learn==1.3.2
+numpy==1.26.4
+scipy==1.11.4
+nltk==3.8.1
+spacy==3.7.2
+transformers==4.36.0
+torch==2.2.2
+
+# Google APIs
+google-api-python-client==2.108.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.1.0
+google-auth==2.23.4
+google-generativeai==0.3.2  # Gemini API
+
+# Sentence Transformers (embeddings locales)
+sentence-transformers==2.2.2
+
+# Utilidades de red y HTTP
+requests==2.31.0
+httpx==0.24.1
+aiohttp==3.9.1
+websockets==12.0
+
+# Procesamiento de archivos
+# Utilidades de fecha y tiempo
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Criptografía y seguridad
+cryptography==42.0.8
+bcrypt==4.1.2
+PyJWT==2.8.0
+
+# Procesamiento asíncrono
+aiofiles==23.2.1
+celery==5.3.4
+redis==5.0.1
+
+# Testing (opcional)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Desarrollo (opcional)
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Visualización y gráficos
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+
+# Procesamiento de imágenes
+opencv-python==4.8.1.78
+
+# Audio y multimedia
+librosa==0.10.1
+SpeechRecognition==3.10.0
+
+# Utilidades adicionales
+tqdm==4.66.1
+click==8.1.7
+rich==13.7.0
+typer==0.9.0
+
+# Jupyter (para notebooks)
+jupyter==1.0.0
+ipykernel==6.27.1
+
+# Formato y validación
+jsonschema==4.20.0
+marshmallow==3.20.1
+
+# Cache
+cachetools==5.3.2
+
+# Compresión
+zstandard==0.22.0
+
+# Métricas y estadísticas
+psutil==5.9.6

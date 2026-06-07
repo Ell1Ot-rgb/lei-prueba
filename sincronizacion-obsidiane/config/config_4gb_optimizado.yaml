@@ -1,0 +1,212 @@
+# ═══════════════════════════════════════════════════════════
+# CONFIGURACIÓN OPTIMIZADA PARA 4GB RAM (DUAL-CORE)
+# ═══════════════════════════════════════════════════════════
+# PC1 (Dual-Core): 192.168.1.35 - 4GB RAM DDR3 @ 1334MHz
+# PC2 (Servidor):   192.168.1.37 - Neo4j + LightRAG
+# Red: LAN 192.168.1.0/24
+# ═══════════════════════════════════════════════════════════
+
+# ============================================================
+# 1. MODELOS NLP - ULTRA LIGEROS (CRÍTICO PARA 4GB)
+# ============================================================
+nlp:
+  # Modelo embedding MÁS PEQUEÑO posible
+  embedding_model: "sentence-transformers/paraphrase-MiniLM-L3-v2"  # 60MB (vs 80MB)
+  embedding_batch_size: 16  # REDUCIDO: 16 textos (era 32)
+  embedding_cache_size: 200  # REDUCIDO: 200 embeddings (era 500)
+  embedding_dimensions: 384
+  
+  # spaCy modelo pequeño
+  spacy_model: "es_core_news_sm"  # 12MB
+  spacy_batch_size: 25  # REDUCIDO: 25 (era 50)
+  spacy_disable: ["ner", "lemmatizer", "textcat"]  # Deshabilitar todo lo no esencial
+  
+  # NO cargar modelos grandes
+  use_large_models: false
+
+# ============================================================
+# 2. PROCESAMIENTO POR LOTES - MUY AGRESIVO (4GB RAM)
+# ============================================================
+clustering:
+  # Lotes MUY pequeños
+  batch_size: 100  # CRÍTICO: Solo 100 conceptos por lote (vs 1000)
+  
+  # Clustering minimal
+  n_clusters: 5  # REDUCIDO: 5 clusters (vs 15)
+  clustering_algorithm: "kmeans"
+  
+  # Dimensionalidad mínima
+  dimensionality_reduction: "umap"
+  n_components: 20  # REDUCIDO: 20 dims (vs 50)
+  
+  # Garbage collection SUPER agresivo
+  gc_interval: 3  # Cada 3 lotes (vs 10)
+  gc_enabled: true
+  gc_aggressive: true
+
+# ============================================================
+# 3. NEO4J REMOTO (PC2: 192.168.1.37)
+# ============================================================
+neo4j:
+  # Conexión a servidor remoto
+  bolt_url: "bolt://192.168.1.37:7687"
+  database: "neo4j"
+  auth_user: "neo4j"
+  auth_password: "fenomenologia2024"
+  
+  # Conexión ligera
+  max_pool_size: 3  # REDUCIDO: 3 conexiones (vs 5)
+  max_connection_lifetime: 1800  # 30 min
+  keep_alive_interval: 45
+  
+  # Timeouts conservadores
+  connection_timeout: 20
+  query_timeout: 90
+  
+  # GDS en servidor remoto
+  gds_enabled: true
+  gds_batch_mode: true
+  gds_batch_size: 2000  # REDUCIDO: 2000 nodos (vs 5000)
+
+# ============================================================
+# 4. OPTIMIZACIÓN MEMORIA - EXTREMA (4GB RAM)
+# ============================================================
+optimization:
+  # Streaming obligatorio
+  streaming_enabled: true
+  stream_chunk_size: 50  # REDUCIDO: 50 items (vs 100)
+  
+  # Lazy loading siempre activo
+  lazy_loading_enabled: true
+  lazy_load_threshold: 5000  # REDUCIDO (vs 10000)
+  
+  # Memoria máxima CRÍTICA
+  max_memory_mb: 1024  # SOLO 1GB de 4GB disponibles (vs 2GB)
+  memory_check_interval: 3  # Verificar cada 3s (vs 5s)
+  memory_cleanup_trigger: 75  # Limpiar si sube >75% (vs 85%)
+  
+  # Threading mínimo
+  max_workers: 1  # SOLO 1 worker (vs 2) para evitar overhead
+  use_async: true
+  
+  # Caché en disco obligatorio
+  use_disk_cache: true
+  cache_dir: "./cache_4gb"
+  cache_ttl_hours: 12  # REDUCIDO: 12h (vs 24h)
+  
+  # Liberar memoria agresivamente
+  clear_cache_on_finish: true
+  force_gc_after_batch: true
+
+# ============================================================
+# 5. MÁXIMO RELACIONAL - MODO ULTRA-LIGERO
+# ============================================================
+maximo_relacional:
+  # Convergencia simplificada
+  convergence_routes: 5
+  target_certainty: 0.99
+  
+  # NetworkX preferido (más ligero que GDS para 4GB)
+  networkx_enabled: true
+  networkx_algorithms: ["pagerank"]  # SOLO PageRank (vs PageRank+Betweenness)
+  networkx_iterations: 50  # REDUCIDO: 50 (vs 100)
+  networkx_max_nodes: 5000  # REDUCIDO: 5k nodos max (vs 10k)
+  
+  # GDS solo para grafos grandes
+  gds_enabled: true
+  gds_algorithms: ["pagerank"]  # Solo PageRank
+  gds_use_concurrency: 2  # En PC2
+  
+  # Umbral decisión
+  definition_confidence_threshold: 0.91
+  combined_confidence_formula: "multiplicativo"
+
+# ============================================================
+# 6. LIGHTRAG REMOTO (PC2: 192.168.1.37)
+# ============================================================
+lightrag:
+  enabled: false  # DESACTIVADO por defecto para ahorrar RAM
+  api_url: "http://192.168.1.37:8000"
+  api_key: "your_api_key_here"
+  timeout: 45
+  
+  # Si se activa, usar minimal
+  refinement_batch_size: 25  # REDUCIDO: 25 (vs 50)
+  refinement_enabled: false  # Desactivado por RAM
+
+# ============================================================
+# 7. LOGGING Y MONITOREO - MINIMAL
+# ============================================================
+monitoring:
+  log_level: "WARNING"  # Solo warnings/errors (vs INFO)
+  log_file: "./logs/4gb_execution.log"
+  log_rotation: "5MB"  # REDUCIDO: 5MB (vs 1GB)
+  log_to_console: false  # No console logs para ahorrar
+  
+  # Métricas ligeras
+  collect_metrics: true
+  metric_interval_seconds: 60  # REDUCIDO: cada 60s (vs 30s)
+  metrics_file: "./metrics/4gb_metrics.csv"
+  
+  # Alertas críticas
+  memory_alert_threshold_mb: 3000  # Alertar si >3GB usado
+  cpu_alert_threshold_percent: 95
+
+# ============================================================
+# 8. CONFIGURACIÓN DE RED (LAN 192.168.1.0/24)
+# ============================================================
+network:
+  pc1_ip: "192.168.1.35"  # Dual-Core
+  pc2_ip: "192.168.1.37"  # Servidor
+  subnet: "192.168.1.0/24"
+  gateway: "192.168.1.1"
+  
+  # Timeouts de red
+  request_timeout: 30
+  connect_timeout: 10
+  read_timeout: 60
+
+# ============================================================
+# 9. SISTEMA - INFO HARDWARE
+# ============================================================
+hardware:
+  pc1:
+    cpu_cores: 2
+    ram_total_gb: 4.0
+    ram_available_gb: 1.2
+    ram_type: "DDR3"
+    ram_speed_mhz: 1334
+    ram_reserved_mb: 517
+    
+  pc2:
+    services:
+      - "neo4j:7687"
+      - "lightrag:8000"
+
+# ============================================================
+# 10. PERFILES DE EJECUCIÓN
+# ============================================================
+profiles:
+  # Perfil MINIMAL (recomendado para 4GB)
+  minimal:
+    batch_size: 50
+    max_memory_mb: 800
+    workers: 1
+    cache_size: 100
+    
+  # Perfil STANDARD (si hay >2GB disponibles)
+  standard:
+    batch_size: 100
+    max_memory_mb: 1024
+    workers: 1
+    cache_size: 200
+    
+  # Perfil PERFORMANCE (requiere 3GB+ libres)
+  performance:
+    batch_size: 200
+    max_memory_mb: 1536
+    workers: 2
+    cache_size: 300
+
+# Perfil activo
+active_profile: "minimal"  # USAR MINIMAL SIEMPRE en 4GB

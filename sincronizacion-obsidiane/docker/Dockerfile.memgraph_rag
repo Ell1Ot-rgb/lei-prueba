@@ -1,0 +1,37 @@
+# Dockerfile.memgraph_rag - Servidor REST de MemGraphRAG
+# ============================================================
+
+FROM python:3.11-slim
+
+# Variables de entorno
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Instalar herramientas básicas del sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Instalar dependencias necesarias
+RUN pip install --no-cache-dir \
+    numpy==1.26.4 \
+    PyYAML==6.0.1 \
+    neo4j==5.15.0 \
+    psutil==5.9.6 \
+    mmh3==4.1.0 \
+    Flask==3.0.0 \
+    watchdog==3.0.0 \
+    python-dotenv==1.0.0
+
+# Copiar el código del sistema
+COPY . .
+
+# Exponer el puerto por defecto de MemGraphRAG Server
+EXPOSE 7688
+
+# Ejecutar el servidor HTTP REST
+CMD ["python", "memgraph_rag_server.py"]

@@ -1,0 +1,389 @@
+{
+  "fecha": "2026-06-03T04:35:57.827008",
+  "resumen": {
+    "ok": 60,
+    "warn": 0,
+    "error": 0,
+    "skip": 3
+  },
+  "detalles": [
+    {
+      "test": "Import core_new.domain.fenomeno.Fenomeno",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:54.259833"
+    },
+    {
+      "test": "Import core_new.domain.contexto.Contexto",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:54.381575"
+    },
+    {
+      "test": "Import core_new.domain.metacontexto.Macrocontexto",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:54.389403"
+    },
+    {
+      "test": "Import core_new.domain.metacontexto.Metacontexto",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:54.389430"
+    },
+    {
+      "test": "Import core_new.domain.simbologia.SimboloNivel",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:54.392588"
+    },
+    {
+      "test": "Import core_new.engines.yo_emergente.motor_yo.MotorYoEmergente",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:54.412725"
+    },
+    {
+      "test": "Import core_new.engines.relaciones.generador_relaciones.GeneradorRelaciones",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.037066"
+    },
+    {
+      "test": "Import core_new.engines.retroalimentacion.ciclo_resignificacion.CicloResignificacion",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.062382"
+    },
+    {
+      "test": "Import core_new.engines.voluntad.motor_voluntad.MotorVoluntad",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.096883"
+    },
+    {
+      "test": "Import core_new.engines.logica_extendida.logica_deontica.MotorDeontico",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.106384"
+    },
+    {
+      "test": "Import core_new.engines.logica_extendida.logica_modal.MotorModal",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.106413"
+    },
+    {
+      "test": "Import core_new.engines.logica_extendida.logica_mereologica.MotorMereologico",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.106427"
+    },
+    {
+      "test": "Import core_new.engines.logica_pura.motor_axiomas.MotorAxiomas",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.136609"
+    },
+    {
+      "test": "Import core_new.engines.logica_pura.motor_hipotetico.MotorHipotetico",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.136635"
+    },
+    {
+      "test": "Import adapters.outbound.obsidian_sync.ObsidianSync",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.144290"
+    },
+    {
+      "test": "Import adapters.inbound.carpeta_watcher.CarpetaWatcher",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:55.224650"
+    },
+    {
+      "test": "Import adapters.inbound.webhook_handler.WebhookHandler",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:57.463761"
+    },
+    {
+      "test": "Import core_new.engines.pipeline_evolucionado.PipelineEvolucionado",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:57.505725"
+    },
+    {
+      "test": "Fenomeno ◉ (Nivel 0)",
+      "estado": "[OK]",
+      "detalle": "id=fen_c97e542c, intensidad=0.21",
+      "ts": "2026-06-03T04:35:57.506263"
+    },
+    {
+      "test": "Contexto ⊞ (Nivel +1)",
+      "estado": "[OK]",
+      "detalle": "coherencia=0.58, yo_presente=True",
+      "ts": "2026-06-03T04:35:57.506350"
+    },
+    {
+      "test": "Macrocontexto ⊡ (Nivel +2)",
+      "estado": "[OK]",
+      "detalle": "coherencia=0.00",
+      "ts": "2026-06-03T04:35:57.506400"
+    },
+    {
+      "test": "Metacontexto ⊠ (Nivel +3)",
+      "estado": "[OK]",
+      "detalle": "patron='Convergencia test'",
+      "ts": "2026-06-03T04:35:57.506468"
+    },
+    {
+      "test": "Lógica Deóntica OFP",
+      "estado": "[OK]",
+      "detalle": "prohibiciones y obligaciones funcionan",
+      "ts": "2026-06-03T04:35:57.506516"
+    },
+    {
+      "test": "Lógica Modal □◇ (Kripke)",
+      "estado": "[OK]",
+      "detalle": "□ necesidad y ◇ posibilidad correctos",
+      "ts": "2026-06-03T04:35:57.506550"
+    },
+    {
+      "test": "Lógica Mereológica ⊂∪",
+      "estado": "[OK]",
+      "detalle": "transitividad correcta (bug fix verificado)",
+      "ts": "2026-06-03T04:35:57.506588"
+    },
+    {
+      "test": "Axiomas Horn ⊢",
+      "estado": "[OK]",
+      "detalle": "inferencia correcta: ['tiene_metabolismo', 'necesita_energia']",
+      "ts": "2026-06-03T04:35:57.507039"
+    },
+    {
+      "test": "Motor Hipotético FCA",
+      "estado": "[OK]",
+      "detalle": "2 instancias, 1 conceptos",
+      "ts": "2026-06-03T04:35:57.507339"
+    },
+    {
+      "test": "YO sin datos → PROTO_YO",
+      "estado": "[OK]",
+      "detalle": "tipo=PROTO_YO",
+      "ts": "2026-06-03T04:35:57.507578"
+    },
+    {
+      "test": "YO con metacontextos",
+      "estado": "[OK]",
+      "detalle": "tipo=YO_REFLEXIVO, emergencia=0.65",
+      "ts": "2026-06-03T04:35:57.507697"
+    },
+    {
+      "test": "YO serialización Obsidian",
+      "estado": "[OK]",
+      "detalle": "707 chars generados",
+      "ts": "2026-06-03T04:35:57.507762"
+    },
+    {
+      "test": "Pipeline ejecutado",
+      "estado": "[OK]",
+      "detalle": "0.05s, 3 fenómenos, YO=YO_SENSORIAL",
+      "ts": "2026-06-03T04:35:57.575301"
+    },
+    {
+      "test": "YO Emergente generado",
+      "estado": "[OK]",
+      "detalle": "tipo=YO_SENSORIAL",
+      "ts": "2026-06-03T04:35:57.575339"
+    },
+    {
+      "test": "Voluntad generada",
+      "estado": "[OK]",
+      "detalle": "4 acciones sugeridas",
+      "ts": "2026-06-03T04:35:57.575349"
+    },
+    {
+      "test": "Notas en 09_YO/",
+      "estado": "[OK]",
+      "detalle": "1 nota(s) generada(s)",
+      "ts": "2026-06-03T04:35:57.576036"
+    },
+    {
+      "test": "Notas en 05_Fenomenos/",
+      "estado": "[OK]",
+      "detalle": "3 nota(s) generada(s)",
+      "ts": "2026-06-03T04:35:57.576054"
+    },
+    {
+      "test": "Notas en 10_Voluntad/",
+      "estado": "[OK]",
+      "detalle": "1 nota(s) generada(s)",
+      "ts": "2026-06-03T04:35:57.576064"
+    },
+    {
+      "test": "Log de procesamiento",
+      "estado": "[OK]",
+      "detalle": "C:\\Users\\Public\\sistema_vivo_final_v2\\test_vault_pipeline_temp\\_sistema\\log_procesamiento.md",
+      "ts": "2026-06-03T04:35:57.576161"
+    },
+    {
+      "test": "ObsidianSync",
+      "estado": "[OK]",
+      "detalle": "estructura + axioma + estado modal correctos",
+      "ts": "2026-06-03T04:35:57.614710"
+    },
+    {
+      "test": "WebhookHandler Flask",
+      "estado": "[OK]",
+      "detalle": "instancia creada correctamente",
+      "ts": "2026-06-03T04:35:57.698940"
+    },
+    {
+      "test": "CarpetaWatcher",
+      "estado": "[OK]",
+      "detalle": "creación de carpeta correcta",
+      "ts": "2026-06-03T04:35:57.703964"
+    },
+    {
+      "test": "Neo4j (Azure)",
+      "estado": "[SKIP]",
+      "detalle": "omitido con --skip-external",
+      "ts": "2026-06-03T04:35:57.704844"
+    },
+    {
+      "test": "LightRAG (Azure)",
+      "estado": "[SKIP]",
+      "detalle": "omitido con --skip-external",
+      "ts": "2026-06-03T04:35:57.704867"
+    },
+    {
+      "test": "n8n (local)",
+      "estado": "[SKIP]",
+      "detalle": "omitido con --skip-external",
+      "ts": "2026-06-03T04:35:57.704878"
+    },
+    {
+      "test": "Vault existe",
+      "estado": "[OK]",
+      "detalle": "C:\\Users\\Public\\Robot\\Zerg",
+      "ts": "2026-06-03T04:35:57.705030"
+    },
+    {
+      "test": "  00_MOC/",
+      "estado": "[OK]",
+      "detalle": "3 notas .md",
+      "ts": "2026-06-03T04:35:57.705584"
+    },
+    {
+      "test": "  01_PreInstancias/",
+      "estado": "[OK]",
+      "detalle": "0 notas .md",
+      "ts": "2026-06-03T04:35:57.705812"
+    },
+    {
+      "test": "  02_Instancias/",
+      "estado": "[OK]",
+      "detalle": "0 notas .md",
+      "ts": "2026-06-03T04:35:57.706027"
+    },
+    {
+      "test": "  03_Gradientes/",
+      "estado": "[OK]",
+      "detalle": "0 notas .md",
+      "ts": "2026-06-03T04:35:57.706822"
+    },
+    {
+      "test": "  04_Vohexistencias/",
+      "estado": "[OK]",
+      "detalle": "0 notas .md",
+      "ts": "2026-06-03T04:35:57.707340"
+    },
+    {
+      "test": "  05_Fenomenos/",
+      "estado": "[OK]",
+      "detalle": "8 notas .md",
+      "ts": "2026-06-03T04:35:57.709238"
+    },
+    {
+      "test": "  06_Contextos/",
+      "estado": "[OK]",
+      "detalle": "6 notas .md",
+      "ts": "2026-06-03T04:35:57.709774"
+    },
+    {
+      "test": "  07_Macrocontextos/",
+      "estado": "[OK]",
+      "detalle": "6 notas .md",
+      "ts": "2026-06-03T04:35:57.710986"
+    },
+    {
+      "test": "  08_Metacontextos/",
+      "estado": "[OK]",
+      "detalle": "6 notas .md",
+      "ts": "2026-06-03T04:35:57.715939"
+    },
+    {
+      "test": "  09_YO/",
+      "estado": "[OK]",
+      "detalle": "9 notas .md",
+      "ts": "2026-06-03T04:35:57.718528"
+    },
+    {
+      "test": "  10_Voluntad/",
+      "estado": "[OK]",
+      "detalle": "9 notas .md",
+      "ts": "2026-06-03T04:35:57.719979"
+    },
+    {
+      "test": "  11_Relaciones/",
+      "estado": "[OK]",
+      "detalle": "1 notas .md",
+      "ts": "2026-06-03T04:35:57.720648"
+    },
+    {
+      "test": "  12_Logica/",
+      "estado": "[OK]",
+      "detalle": "0 notas .md",
+      "ts": "2026-06-03T04:35:57.722491"
+    },
+    {
+      "test": "  _sistema/",
+      "estado": "[OK]",
+      "detalle": "3 notas .md",
+      "ts": "2026-06-03T04:35:57.723932"
+    },
+    {
+      "test": "  _Templates/",
+      "estado": "[OK]",
+      "detalle": "2 notas .md",
+      "ts": "2026-06-03T04:35:57.731512"
+    },
+    {
+      "test": "  _Dashboard/",
+      "estado": "[OK]",
+      "detalle": "2 notas .md",
+      "ts": "2026-06-03T04:35:57.731921"
+    },
+    {
+      "test": "  00_MOC/MOC_Pipeline.md",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:57.732043"
+    },
+    {
+      "test": "  00_MOC/MOC_Niveles.md",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:57.732543"
+    },
+    {
+      "test": "  00_MOC/MOC_Relaciones.md",
+      "estado": "[OK]",
+      "detalle": "",
+      "ts": "2026-06-03T04:35:57.743087"
+    }
+  ]
+}

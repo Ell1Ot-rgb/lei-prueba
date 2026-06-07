@@ -1,0 +1,86 @@
+# ============================================================================
+# Docker Compose — Memgraph Platform para Sistema Vivo MemGraphRAG
+# ============================================================================
+#
+# Levanta Memgraph Platform (DB + MAGE + Lab) para el subsistema MemGraphRAG
+# del Sistema Vivo Fenomenológico Hexagonal v4.0.
+#
+# Uso:
+#   docker-compose -f docker-compose.memgraph.yml up -d
+#   docker-compose -f docker-compose.memgraph.yml down
+#
+# Puertos:
+#   7687 → Bolt protocol (Python driver, principal conexión del sistema)
+#   3000 → Memgraph Lab UI (http://localhost:3000)
+#   7444 → Streaming de logs
+#
+# Paper: arXiv:2606.00610 — MemGraphRAG (KDD 2026)
+# Implementación: Sistema Vivo v4.0 MemGraphRAG Adapter
+# ============================================================================
+
+version: "3.8"
+
+services:
+  
+  # ─── Memgraph Platform (Servidor de Grafos Principal) ──────────────────────
+  memgraph:
+    image: memgraph/memgraph-platform:latest
+    container_name: sistema_vivo_memgraph
+    restart: unless-stopped
+    
+    ports:
+      - "7687:7687"   # Bolt protocol — Python driver connect aquí
+      - "3000:3000"   # Memgraph Lab — UI web para explorar el grafo
+      - "7444:7444"   # Logs streaming
+    
+    volumes:
+      - memgraph_data:/var/lib/memgraph     # Persistencia de datos del grafo
+      - memgraph_logs:/var/log/memgraph     # Logs de Memgraph
+      - memgraph_conf:/etc/memgraph         # Configuración
+    
+    environment:
+      # Configuración de Memgraph
+      MEMGRAPH_BOLT_PORT: 7687
+      MEMGRAPH_LOG_LEVEL: WARNING
+      
+      # MAGE (Memgraph Advanced Graph Extensions) — incluye PageRank nativo
+      # Necesario para PPR del algoritmo MemGraphRAG
+      MEMGRAPH_QUERY_MODULES_DIRECTORY: /usr/lib/memgraph/query_modules
+    
+    # Límites de recursos
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 512M
+    
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    
+    command: >
+      --storage-properties-on-edges=true
+      --log-level=WARNING
+      --also-log-to-stderr=false
+
+# ─── Volúmenes persistentes ────────────────────────────────────────────────
+volumes:
+  memgraph_data:
+    name: sistema_vivo_memgraph_data
+    driver: local
+  memgraph_logs:
+    name: sistema_vivo_memgraph_logs
+    driver: local
+  memgraph_conf:
+    name: sistema_vivo_memgraph_conf
+    driver: local
+
+# ─── Red interna ──────────────────────────────────────────────────────────
+networks:
+  default:
+    name: sistema_vivo_network
+    driver: bridge

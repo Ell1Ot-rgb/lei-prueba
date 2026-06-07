@@ -1,0 +1,152 @@
+   (cambiar bolt_url a IP real de PC2)# Configuración 
+   optimizada para AMD Dual-Core 8GB RAM
+# Este archivo controla TODOS los parámetros de memoria y 
+# rendimiento
+3. Leer documentación:
+   cat README_MAXIMO_RELACIONAL_FINAL.md
+
+4. Integrar en sistema: Seguir 
+   GUIA_INTEGRACION_MAXIMO_RELACIONAL.md# 
+   ============================================================
+# 1. CONFIGURACIÓN DE MODELOS NLP (CRÍTICO PARA MEMORIA) 
+# ============================================================
+5. Procesar conceptos:nlp: 1000+ conceptos sin problemas 
+   en dual-core # IMPORTANTE: Usar modelos "sm" (small), 
+   NUNCA "lg" (large)
+  # all-MiniLM-L6-v2: 80MB, 384 dimensiones (optimo para 
+  # dual-core)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 
+  embedding_model: "all-MiniLM-L6-v2" 
+  embedding_batch_size: 32 # Procesar 32 textos 
+  simultáneamente embedding_cache_size: 500 # Cachear 500 
+  embeddings en memoria
+  
+  # spaCy modelo pequeño
+╔════════════════════════════════════════════════════════════════════════════════╗ 
+  spacy_model: "es_core_news_sm" # NUNCA usar 
+  es_core_news_lg spacy_batch_size: 50 spacy_disable: 
+  ["ner", "lemmatizer"] # Deshabilitar si no se usan
+║ ║ ║ ✅ SISTEMA LISTO PARA PRODUCCIÓN ✅ ║# 
+============================================================ 
+║ ║# 2. CONFIGURACIÓN DE PROCESAMIENTO POR LOTES (BATCH) 
+║ Arquitectura híbrida optimizada para AMD Dual-Core ║# 
+============================================================ 
+clustering: ║ + PC2 remota potente ║ # Procesar en LOTES 
+pequeños, no cargar todo en memoria ║ ║ batch_size: 1000 
+# 1000 conceptos por lote
+║ Siguiente paso: Ejecutar install script ║ ║ ║ # Vohex 
+clustering 
+╚════════════════════════════════════════════════════════════════════════════════╝ 
+n_clusters: 15 # Rango optimo para dual-core
+  clustering_algorithm: "kmeans" # Mas ligero que DBSCAN 
+EOF
+  # Reducción dimensional
+  dimensionality_reduction: "umap"  # Mas rapido que t-SNE
+  n_components: 50  # 50 dimensiones en lugar de 100
+  
+  # Garbage collection
+  gc_interval: 10  # Forzar recolección cada 10 lotes
+  gc_enabled: true
+
+# ============================================================
+# 3. CONFIGURACIÓN DE NEO4J (CONEXIÓN REMOTA A PC POTENTE)
+# ============================================================
+neo4j:
+  # Conectar a PC2 (la máquina potente)
+  bolt_url: "bolt://192.168.1.37:7687"  # IP real de PC2
+  database: "neo4j"
+  auth_user: "neo4j"
+  auth_password: "fenomenologia2024"
+  
+  # Parámetros de conexión optimizados
+  max_pool_size: 5  # No crear demasiadas conexiones
+  max_connection_lifetime: 3600  # 1 hora
+  keep_alive_interval: 30  # Mantener vivo cada 30s
+  
+  # Timeouts (prevenir bloqueos)
+  connection_timeout: 15
+  query_timeout: 60  # Máximo 60s por query
+  
+  # GDS queries (ejecutar en PC2)
+  gds_enabled: true
+  gds_batch_mode: true
+  gds_batch_size: 5000  # Procesar 5000 nodos en GDS
+
+# ============================================================
+# 4. CONFIGURACIÓN DE OPTIMIZACIÓN DE MEMORIA
+# ============================================================
+optimization:
+  # Streaming: No acumular resultados en RAM
+  streaming_enabled: true
+  stream_chunk_size: 100  # Procesar 100 items y liberar
+  
+  # Lazy loading: Cargar bajo demanda
+  lazy_loading_enabled: true
+  lazy_load_threshold: 10000  # Items a cargar lazily
+  
+  # Memoria máxima permitida
+  max_memory_mb: 2048  # 2GB de 8GB disponibles
+  memory_check_interval: 5  # Verificar cada 5s
+  memory_cleanup_trigger: 85  # Limpiar si sube >85%
+  
+  # Threading (usar poco para dual-core)
+  max_workers: 2  # MÁXIMO 2 threads (dual-core!)
+  use_async: true  # Usar async/await para I/O
+  
+  # Almacenamiento en disco
+  use_disk_cache: true
+  cache_dir: "./cache_dualcore"
+  cache_ttl_hours: 24
+
+# ============================================================
+# 5. CONFIGURACIÓN DE MÁXIMO RELACIONAL DEFINICIONAL
+# ============================================================
+maximo_relacional:
+  # Análisis de convergencia (5 rutas)
+  convergence_routes: 5
+  target_certainty: 0.99  # 99% de certeza
+  
+  # NetworkX (análisis local rápido)
+  networkx_enabled: true
+  networkx_algorithms: ["pagerank", "betweenness_centrality"]
+  networkx_iterations: 100
+  
+  # Neo4j GDS (análisis remoto pesado)
+  gds_enabled: true
+  gds_algorithms: ["pagerank", "betweenness_centrality", "louvain"]
+  gds_use_concurrency: 4  # En PC2: usar 4 threads
+  
+  # Umbral de decisión
+  definition_confidence_threshold: 0.91  # Cada ruta debe tener 91%
+  combined_confidence_formula: "multiplicativo"  # 1-(1-c1)*(1-c2)*...
+
+# ============================================================
+# 6. CONFIGURACIÓN DE LOGGING Y MONITOREO
+# ============================================================
+monitoring:
+  log_level: "INFO"  # DEBUG=demasiado verbose en dual-core
+  log_file: "./logs/dualcore_execution.log"
+  log_rotation: "1GB"  # Rotar cada 1GB
+  
+  # Métricas (lightweight)
+  collect_metrics: true
+  metric_interval_seconds: 30
+  metrics_file: "./metrics/dualcore_metrics.csv"
+  
+  # Alertas
+  memory_alert_threshold_mb: 6000  # Alertar si sube >6GB
+  cpu_alert_threshold_percent: 90  # Alertar si CPU >90%
+
+# ============================================================
+# 7. CONFIGURACIÓN DE LIGHTRAG (DOCKER EN PC2)
+# ============================================================
+lightrag:
+  enabled: true
+  api_url: "http://192.168.X.X:8000"  # Reemplazar X.X
+  api_key: "your_api_key_here"
+  timeout: 30
+  
+  # Parámetros de refinamiento
+  refinement_batch_size: 50
+  refinement_enabled: true
+  refinement_confidence_threshold: 0.85

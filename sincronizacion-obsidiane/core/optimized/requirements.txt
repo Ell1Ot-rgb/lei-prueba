@@ -1,0 +1,5 @@
+# Requirements para Sistema Optimizado
+
+numpy>=1.20.0
+scipy>=1.7.0
+mmh3>=3.0.0

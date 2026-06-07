@@ -1,0 +1,338 @@
+# ============================================================
+# CONFIGURACIÓN SISTEMA YO ESTRUCTURAL v3.0
+# ============================================================
+# Configuración optimizada para sistemas con 4GB RAM
+# (usa REMForge Lite por defecto)
+
+# ============================================================
+# MODO DE OPERACIÓN
+# ============================================================
+modo_diagnostico: false  # true = logging DEBUG, false = logging INFO
+
+# ============================================================
+# NEO4J - BASE DE DATOS DE GRAFOS
+# ============================================================
+neo4j:
+  # Conexión (usar variables de entorno en producción)
+  host: localhost
+  port: 7687
+  username: neo4j
+  password: ""  # Configurar en .env como NEO4J_PASSWORD
+  database: neo4j
+  
+  # Parámetros avanzados
+  timeout: 30  # segundos
+  max_retry: 3
+  pool_size: 50
+  
+  # Configuración GDS (Graph Data Science)
+  use_gds: true
+  gds_timeout: 60
+
+# ============================================================
+# REMFORGE - TOKENIZACIÓN FENOMENOLÓGICA
+# ============================================================
+remforge:
+  modo: auto  # auto | ultra | lite
+  device: auto  # auto | cpu | cuda | mps
+  precision: float16  # float16 | float32
+  
+  # Configuración para modo auto
+  auto_detection:
+    ram_threshold_gb: 6  # Si RAM > 6GB → Ultra, sino → Lite
+    prefer_lite: false  # true fuerza Lite incluso con RAM suficiente
+
+# ============================================================
+# PROCESADORES
+# ============================================================
+procesadores:
+  # Procesador de textos fenomenológicos
+  textos:
+    max_archivos: 100
+    encoding: utf-8
+    extensiones: ['.txt', '.md']
+  
+  # Generador de rutas FCA
+  rutas_fca:
+    num_rutas: 5
+    threshold_similitud: 0.7
+    threshold_certeza: 0.95
+    use_embeddings_cache: true
+
+# ============================================================
+# MOTOR YO - EVALUACIÓN DE EMERGENCIA
+# ============================================================
+motor_yo:
+  # Umbrales para tipos YO (pueden ser adaptativos en futuro)
+  umbrales:
+    narrativo: 0.75
+    reflexivo: 0.60
+    fragmentado: 0.40
+    disociado: 0.0
+  
+  # MDCE - Contradicción Nivel 4
+  mdce:
+    enabled: true
+    threshold_contradiccion: 0.65
+    max_intentos_reconfiguracion: 3
+
+# ============================================================
+# SISTEMA DE GRADIENTES
+# ============================================================
+gradientes:
+  dimensiones:
+    - temporal
+    - coherencia
+    - estructural
+  
+  # Vohexistencias
+  vohexistencias:
+    min_instancias: 3
+    threshold_patron: 0.7
+    clustering_algorithm: dbscan
+    dbscan_eps: 0.5
+    dbscan_min_samples: 2
+
+# ============================================================
+# INTEGRACIONES EXTERNAS
+# ============================================================
+
+# Gemini (Google)
+gemini:
+  enabled: false  # Configurar en .env: GOOGLE_GEMINI_API_KEY
+  model: gemini-1.5-pro
+  temperature: 0.7
+  max_tokens: 8000
+  timeout: 30
+
+# OpenRouter (Kimi K2, etc.)
+openrouter:
+  enabled: false  # Configurar en .env: OPENROUTER_API_KEY
+  base_url: https://openrouter.ai/api/v1
+  model: deepseek/kimi-k2-free
+  timeout: 30
+
+# n8n (Orquestación)
+n8n:
+  enabled: false
+  host: localhost
+  port: 5678
+  protocol: http
+  webhooks:
+    process_text: /process-text
+    sync_neo4j: /sync-neo4j
+
+# ============================================================
+# RUTAS DEL SISTEMA
+# ============================================================
+rutas:
+  # Entrada de datos
+  entrada_bruta: entrada_bruta/
+  entrada_procesada: procesado/
+  
+  # Salidas
+  logs: logs_sistema/
+  diagnosticos: diagnosticos_sistema/
+  yamls: procesado/yamls/
+  grafos: procesado/grafos/
+  
+  # Caché
+  cache_embeddings: cache/embeddings/
+  cache_rem: cache/rem/
+
+# ============================================================
+# LOGGING
+# ============================================================
+logging:
+  level: INFO  # DEBUG | INFO | WARNING | ERROR
+  formato: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  archivo_rotacion: true
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+# ============================================================
+# MÉTRICAS Y MONITOREO
+# ============================================================
+metricas:
+  guardar_cada_n_instancias: 10
+  exportar_a_json: true
+  exportar_a_neo4j: true
+
+# ============================================================
+# OPCIONES AVANZADAS
+# ============================================================
+# ============================================================
+# CONFIGURACIÓN SISTEMA YO ESTRUCTURAL v3.0
+# ============================================================
+# Configuración optimizada para sistemas con 4GB RAM
+# (usa REMForge Lite por defecto)
+
+# ============================================================
+# MODO DE OPERACIÓN
+# ============================================================
+modo_diagnostico: false  # true = logging DEBUG, false = logging INFO
+
+# ============================================================
+# NEO4J - BASE DE DATOS DE GRAFOS
+# ============================================================
+neo4j:
+  # Conexión (usar variables de entorno en producción)
+  host: localhost
+  port: 7687
+  username: neo4j
+  password: ""  # Configurar en .env como NEO4J_PASSWORD
+  database: neo4j
+  
+  # Parámetros avanzados
+  timeout: 30  # segundos
+  max_retry: 3
+  pool_size: 50
+  
+  # Configuración GDS (Graph Data Science)
+  use_gds: true
+  gds_timeout: 60
+
+# ============================================================
+# REMFORGE - TOKENIZACIÓN FENOMENOLÓGICA
+# ============================================================
+remforge:
+  modo: auto  # auto | ultra | lite
+  device: auto  # auto | cpu | cuda | mps
+  precision: float16  # float16 | float32
+  
+  # Configuración para modo auto
+  auto_detection:
+    ram_threshold_gb: 6  # Si RAM > 6GB → Ultra, sino → Lite
+    prefer_lite: false  # true fuerza Lite incluso con RAM suficiente
+
+# ============================================================
+# PROCESADORES
+# ============================================================
+procesadores:
+  # Procesador de textos fenomenológicos
+  textos:
+    max_archivos: 100
+    encoding: utf-8
+    extensiones: ['.txt', '.md']
+  
+  # Generador de rutas FCA
+  rutas_fca:
+    num_rutas: 5
+    threshold_similitud: 0.7
+    threshold_certeza: 0.95
+    use_embeddings_cache: true
+
+# ============================================================
+# MOTOR YO - EVALUACIÓN DE EMERGENCIA
+# ============================================================
+motor_yo:
+  # Umbrales para tipos YO (pueden ser adaptativos en futuro)
+  umbrales:
+    narrativo: 0.75
+    reflexivo: 0.60
+    fragmentado: 0.40
+    disociado: 0.0
+  
+  # MDCE - Contradicción Nivel 4
+  mdce:
+    enabled: true
+    threshold_contradiccion: 0.65
+    max_intentos_reconfiguracion: 3
+
+# ============================================================
+# SISTEMA DE GRADIENTES
+# ============================================================
+gradientes:
+  dimensiones:
+    - temporal
+    - coherencia
+    - estructural
+  
+  # Vohexistencias
+  vohexistencias:
+    min_instancias: 3
+    threshold_patron: 0.7
+    clustering_algorithm: dbscan
+    dbscan_eps: 0.5
+    dbscan_min_samples: 2
+
+# ============================================================
+# INTEGRACIONES EXTERNAS
+# ============================================================
+
+# Gemini (Google)
+gemini:
+  enabled: false  # Configurar en .env: GOOGLE_GEMINI_API_KEY
+  model: gemini-1.5-pro
+  temperature: 0.7
+  max_tokens: 8000
+  timeout: 30
+
+# OpenRouter (Kimi K2, etc.)
+openrouter:
+  enabled: false  # Configurar en .env: OPENROUTER_API_KEY
+  base_url: https://openrouter.ai/api/v1
+  model: deepseek/kimi-k2-free
+  timeout: 30
+
+# n8n (Orquestación)
+n8n:
+  enabled: false
+  host: localhost
+  port: 5678
+  protocol: http
+  webhooks:
+    process_text: /process-text
+    sync_neo4j: /sync-neo4j
+
+# ============================================================
+# RUTAS DEL SISTEMA
+# ============================================================
+rutas:
+  # Entrada de datos
+  entrada_bruta: entrada_bruta/
+  entrada_procesada: procesado/
+  
+  # Salidas
+  logs: logs_sistema/
+  diagnosticos: diagnosticos_sistema/
+  yamls: procesado/yamls/
+  grafos: procesado/grafos/
+  
+  # Caché
+  cache_embeddings: cache/embeddings/
+  cache_rem: cache/rem/
+
+# ============================================================
+# LOGGING
+# ============================================================
+logging:
+  level: INFO  # DEBUG | INFO | WARNING | ERROR
+  formato: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  archivo_rotacion: true
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+# ============================================================
+# MÉTRICAS Y MONITOREO
+# ============================================================
+metricas:
+  guardar_cada_n_instancias: 10
+  exportar_a_json: true
+  exportar_a_neo4j: true
+
+# ============================================================
+# OPCIONES AVANZADAS
+# ============================================================
+avanzado:
+  # Paralelización
+  max_workers: 4
+  use_multiprocessing: false
+  
+  # Optimización de memoria
+  clear_cache_after_processing: true
+  max_instancias_en_memoria: 1000
+  
+  # Desarrollo
+  skip_neo4j_on_error: false  # true = continuar sin Neo4j si falla
+  mock_llm_calls: false  # true = simular llamadas LLM para testing

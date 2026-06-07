@@ -1,0 +1,167 @@
+# ============================================================================
+# Docker Compose — RAG e Integración de Grafos (v4.0)
+# ============================================================================
+#
+# Levanta la infraestructura de RAG relacional y bases de datos de grafos:
+#   1. Memgraph Platform (DB + Lab en http://localhost:3000)
+#   2. Neo4j Server (DB en http://localhost:7474)
+#   3. LightRAG (REST API en http://localhost:8000)
+#   4. MemGraphRAG Server (REST API en http://localhost:7688)
+#
+# Uso:
+#   docker-compose -f docker-compose.rag.yml up -d
+#   docker-compose -f docker-compose.rag.yml down
+# ============================================================================
+
+version: '3.8'
+
+services:
+
+  # ─── MEMGRAPH (Para MemGraphRAG Adapter) ──────────────────────────────────
+  memgraph:
+    image: memgraph/memgraph-platform:latest
+    container_name: sistema_vivo_memgraph
+    restart: unless-stopped
+    ports:
+      - "7687:7687"   # Bolt protocol
+      - "3000:3000"   # Memgraph Lab UI (explorador)
+      - "7444:7444"   # Logs
+    volumes:
+      - memgraph_data:/var/lib/memgraph
+      - memgraph_logs:/var/log/memgraph
+    environment:
+      MEMGRAPH_BOLT_PORT: 7687
+      MEMGRAPH_LOG_LEVEL: WARNING
+      MEMGRAPH_QUERY_MODULES_DIRECTORY: /usr/lib/memgraph/query_modules
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - RAG_network
+
+  # ─── MEMGRAPH RAG SERVER (Orquestación REST Multi-Agente) ─────────────────
+  memgraph_rag_server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.memgraph_rag
+    container_name: memgraph_rag_server
+    restart: unless-stopped
+    ports:
+      - "7688:7688"   # API REST para el pipeline ( indexar / consultar )
+    environment:
+      - MEMGRAPH_HOST=memgraph
+      - MEMGRAPH_PORT=7687
+      - MEMGRAPH_RAG_ENABLED=true
+      - MEMGRAPH_RAG_PORT=7688
+      - SCHEMA_FREQ_THRESHOLD=2
+      - MEMGRAPH_PPR_ALPHA=0.85
+      - MEMGRAPH_PPR_TOP_K=10
+    depends_on:
+      memgraph:
+        condition: service_healthy
+    networks:
+      - RAG_network
+
+  # ─── NEO4J (Para LightRAG/Graffiti RAG) ────────────────────────────────────
+  neo4j:
+    image: neo4j:5.12.0
+    container_name: neo4j_lightrag
+    restart: unless-stopped
+    ports:
+      - "7474:7474"   # HTTP Web UI (Admin)
+      - "7690:7687"   # Bolt (Mapeado a 7690 en el host para evitar colisión)
+    environment:
+      - NEO4J_AUTH=neo4j/fenomenologia2024
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - RAG_network
+
+  # ─── LIGHTRAG (REST API) ──────────────────────────────────────────────────
+  lightrag:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.lightrag
+    container_name: lightrag_server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"   # LightRAG REST API
+    environment:
+      - LIGHTRAG_API_KEY=your_api_key_default
+      - LIGHTRAG_PORT=8000
+      - LIGHTRAG_WORKERS=2
+      - NEO4J_URL=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=fenomenologia2024
+      - EMBEDDING_MODEL=paraphrase-MiniLM-L3-v2
+      - TOKENIZER_MODEL=gpt2
+      - GOOGLE_GEMINI_API_KEY
+      - OPENAI_API_KEY=sk-dummy-key
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    volumes:
+      - lightrag_data:/app/data
+      - lightrag_cache:/app/cache
+      - ./lightrag_custom_server.py:/app/lightrag_custom_server.py
+    networks:
+      - RAG_network
+
+  # ─── N8N (Automatización y Workflow) ──────────────────────────────────────
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n_organismo
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./vault:/vault  # Montamos el Vault de Obsidian para que n8n pueda leer/escribir
+    networks:
+      - RAG_network
+
+# ─── Redes e Infraestructura ───────────────────────────────────────────────
+networks:
+  RAG_network:
+    name: sistema_vivo_rag_network
+    driver: bridge
+
+volumes:
+  memgraph_data:
+    driver: local
+  memgraph_logs:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  lightrag_data:
+    driver: local
+  lightrag_cache:
+    driver: local
+  n8n_data:
+    driver: local

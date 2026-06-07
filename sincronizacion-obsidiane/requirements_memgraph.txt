@@ -1,0 +1,51 @@
+# ============================================================================
+# requirements_memgraph.txt
+# Dependencias adicionales para el subsistema MemGraphRAG
+# Sistema Vivo Hexagonal v4.0
+# ============================================================================
+#
+# Instalar con:
+#   pip install -r requirements_memgraph.txt
+#
+# Nota: Solo estas dependencias son NUEVAS.
+# Las dependencias del sistema existente están en requirements.txt
+# ============================================================================
+
+# ─── Driver de conexión a Memgraph (protocolo Bolt) ─────────────────────────
+# Memgraph es compatible con el driver oficial de Neo4j
+neo4j>=5.14.0
+
+# ─── Alternativa: GQLAlchemy (OGM oficial de Memgraph) ─────────────────────
+# Opción alternativa al driver Neo4j — descomentarla si se prefiere
+# gqlalchemy>=1.6.0
+
+# ─── Computación numérica (para embeddings y similitud coseno) ──────────────
+numpy>=1.24.0
+
+# ─── Procesamiento de grafos en memoria (fallback sin Memgraph) ─────────────
+# Opcional: solo necesario si se quiere análisis avanzado en modo local
+# networkx>=3.0
+
+# ─── HTTP client para API REST del servidor MemGraphRAG (opcional) ──────────
+# requests>=2.31.0
+
+# ─── Modelos de embeddings para similitud semántica (mejora opcional) ────────
+# Para similitud semántica real en lugar de Jaccard — descomentar si se tienen GPUs
+# sentence-transformers>=2.2.0
+
+# ─── Notas de instalación ───────────────────────────────────────────────────
+# 1. Docker (REQUERIDO para Memgraph):
+#    https://docs.docker.com/get-docker/
+#    Después de instalar Docker, ejecutar:
+#      docker-compose -f docker-compose.memgraph.yml up -d
+#
+# 2. Verificar conexión Memgraph:
+#    python -c "from adapters.outbound.memgraph_rag import MemGraphClient; c=MemGraphClient(); print(c)"
+#
+# 3. Variables de entorno (.env):
+#    MEMGRAPH_HOST=localhost
+#    MEMGRAPH_PORT=7687
+#    MEMGRAPH_RAG_ENABLED=true
+#    SCHEMA_FREQ_THRESHOLD=2
+#    MEMGRAPH_PPR_ALPHA=0.85
+#    MEMGRAPH_PPR_TOP_K=10

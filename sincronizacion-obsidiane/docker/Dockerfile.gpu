@@ -1,0 +1,88 @@
+# Dockerfile multi-stage para YO Estructural con GPU
+# ====================================================
+# 
+# Optimizado para:
+# - NVIDIA GPU (CUDA)
+# - AMD GPU (ROCm)
+# - CPU fallback
+# 
+# Componentes:
+# - Tokenizador Fenomenológico GPU
+# - Clasificador Avanzado
+# - Neo4j connector
+# - Redis connector
+# - LightRAG integration
+
+# =============================================
+# STAGE 1: Base con CUDA
+# =============================================
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04 AS base-gpu
+
+# Variables de entorno
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV CUDA_VISIBLE_DEVICES=0
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3-pip \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear symlinks
+RUN ln -s /usr/bin/python3.11 /usr/bin/python
+
+# Actualizar pip
+RUN python -m pip install --upgrade pip setuptools wheel
+
+# =============================================
+# STAGE 2: Dependencias Python
+# =============================================
+FROM base-gpu AS python-deps
+
+WORKDIR /app
+
+# Copiar requirements
+COPY requirements-gpu.txt .
+
+# Instalar dependencias Python con GPU support
+RUN pip install --no-cache-dir \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install --no-cache-dir -r requirements-gpu.txt
+
+# =============================================
+# STAGE 3: Aplicación
+# =============================================
+FROM python-deps AS app
+
+WORKDIR /app
+
+# Copiar código fuente
+COPY . .
+
+# Crear directorios necesarios
+RUN mkdir -p \
+    /app/modelos \
+    /app/logs \
+    /app/cache \
+    /app/estado
+
+# Variables de entorno de la aplicación
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+ENV TOKENIZER_DEVICE="cuda"
+ENV TOKENIZER_MODE="ultra"
+ENV TOKENIZER_PRECISION="mixed"
+ENV TOKENIZER_BATCH_SIZE=8
+ENV CLASIFICADOR_DEVICE="cuda"
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import torch; assert torch.cuda.is_available()" || exit 1
+
+# Exponer puertos
+EXPOSE 8000 8001
+
+# Comando por defecto
+CMD ["python", "-m", "uvicorn", "api.api_sistema_yo:app", "--host", "0.0.0.0", "--port", "8000"]

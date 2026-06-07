@@ -1,0 +1,181 @@
+# docker-compose.yml para PC2 (Máquina potente)
+# ============================================================
+# Ejecuta: docker-compose up -d
+# ============================================================
+
+version: '3.8'
+
+services:
+  # ============================================================
+  # NEO4J - Para PC2 (192.168.1.37)
+  # Conexión desde PC1 (192.168.1.35) con 4GB RAM
+  # ============================================================
+  neo4j:
+    image: neo4j:5.12.0-enterprise
+    container_name: neo4j_fenomenologia
+    hostname: neo4j
+    ports:
+      - "192.168.1.37:7474:7474"  # HTTP (solo LAN)
+      - "192.168.1.37:7687:7687"  # Bolt (solo LAN)
+    environment:
+      - NEO4J_AUTH=neo4j/fenomenologia2024
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+      
+      # Configuración de memoria para PC2 (servidor dedicado)
+      # PC1 tiene 4GB, pero PC2 puede usar más
+      - NEO4J_server_memory_heap_initial__size=2G
+      - NEO4J_server_memory_heap_max__size=4G
+      - NEO4J_server_memory_pagecache_size=1G
+      
+      # Plugins (GDS para análisis de grafos)
+      - NEO4J_PLUGINS=["graph-data-science", "apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=gds.*,apoc.*
+      
+      # Performance
+      - NEO4J_dbms_transaction_timeout=60s
+      - NEO4J_dbms_lock_acquisition_timeout=30s
+    
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/import
+    
+    networks:
+      - maximo_relacional_network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+  
+  # ============================================================
+  # LIGHTRAG: Refinamiento semántico de grafos
+  # Accesible desde PC1 (192.168.1.35) vía LAN
+  # ============================================================
+  lightrag:
+    build:
+      context: .
+      dockerfile: Dockerfile.lightrag
+    container_name: lightrag_semantic_refinement
+    
+    environment:
+      # Variables de aplicación
+      LIGHTRAG_API_KEY: "your_api_key_default"
+      LIGHTRAG_PORT: 8000
+      LIGHTRAG_WORKERS: 4  # Procesos workers en PC2
+      
+      # Conexión a Neo4j (local en PC2)
+      NEO4J_URL: "bolt://neo4j:7687"
+      NEO4J_USER: "neo4j"
+      NEO4J_PASSWORD: "fenomenologia2024"
+      
+      # Modelos ligeros para eficiencia
+      EMBEDDING_MODEL: "paraphrase-MiniLM-L3-v2"  # 60MB (más ligero)
+      TOKENIZER_MODEL: "gpt2"
+      
+      # Configuración de procesamiento
+      LIGHTRAG_BATCH_SIZE: 100
+      LIGHTRAG_CACHE_SIZE: 1000
+    
+    ports:
+      - "192.168.1.37:8000:8000"  # API REST accesible desde PC1
+    
+    volumes:
+      - lightrag_data:/app/data
+      - lightrag_cache:/app/cache
+    
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    
+    networks:
+      - maximo_relacional_network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# ============================================================
+# RED DOCKER
+# ============================================================
+networks:
+  maximo_relacional_network:
+    driver: bridge
+
+# ============================================================
+# VOLÚMENES PERSISTENTES
+# ============================================================
+volumes:
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  lightrag_data:
+    driver: local
+  lightrag_cache:
+    driver: local
+
+# ============================================================
+# INSTRUCCIONES DE USO
+# ============================================================
+# 
+# 1. Crear Dockerfile.lightrag en mismo directorio:
+#    Ver archivo Dockerfile.lightrag.txt en este repositorio
+#
+# 2. Iniciar servicios:
+#    $ docker-compose up -d
+#
+# 3. Verificar estado:
+#    $ docker-compose ps
+#
+# 4. Ver logs:
+#    $ docker-compose logs -f neo4j
+#    $ docker-compose logs -f lightrag
+#
+# 5. Conectar desde PC1 (dual-core, 4GB RAM):
+#    - Neo4j Bolt: bolt://192.168.1.37:7687
+#      Usuario: neo4j
+#      Password: fenomenologia2024
+#    - LightRAG API: http://192.168.1.37:8000
+#
+# 6. Test de conectividad desde PC1:
+#    $ telnet 192.168.1.37 7687
+#    $ curl http://192.168.1.37:8000/health
+#
+# 7. Detener:
+#    $ docker-compose down
+#
+# 8. Limpiar (destruir volúmenes):
+#    $ docker-compose down -v
+#
+# ============================================================
+# CONFIGURACIÓN RED LAN
+# ============================================================
+# PC1 (cliente): 192.168.1.35 - 4GB RAM dual-core
+# PC2 (servidor): 192.168.1.37 - Neo4j + LightRAG
+# Gateway: 192.168.1.1
+# Red: 192.168.1.0/24
+#
+# FIREWALL PC2 (si es necesario):
+# $ sudo ufw allow from 192.168.1.35 to any port 7687 proto tcp
+# $ sudo ufw allow from 192.168.1.35 to any port 8000 proto tcp
+# $ sudo ufw allow from 192.168.1.35 to any port 7474 proto tcp
+# ============================================================
+#
+# ============================================================
+# MONITOREO EN TIEMPO REAL
+# ============================================================
+#
+# $ watch -n 2 'docker stats --no-stream neo4j lightrag'
+#
+# ============================================================

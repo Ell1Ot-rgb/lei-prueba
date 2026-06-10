@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # ORGANISMO VIVO - El cerebro del sistema
+  # ============================================================
+  organismo:
+    build:
+      context: ..
+      dockerfile: deploy_docker/Dockerfile
+    container_name: organismo_vivo_v100
+    depends_on:
+      - neo4j
+    environment:
+      - BIO_DIGITAL_HMAC_KEY=7f8e9d0a1b2c3d4e5f6g7h8i9j0k1l2m
+      - NEO4J_URL=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=fenomenologia2024
+      - PYTHONPATH=/app/antigravity-connect/sistema biologico/sistema_terminado/interfaces:/app/antigravity-connect/sistema biologico/sistema_terminado
+    volumes:
+      - ..:/app
+    networks:
+      - bio_net
+    # Mantenemos el contenedor vivo para poder entrar y ejecutar pruebas
+    command: tail -f /dev/null
+
+  # ============================================================
+  # NEO4J - Grafo Conceptual y Persistencia
+  # ============================================================
+  neo4j:
+    image: neo4j:5.12.0
+    container_name: bio_database
+    ports:
+      - "7475:7474" # HTTP (Mapeado a 7475 para evitar colisión)
+      - "7689:7687" # Bolt (Mapeado a 7689 para evitar colisión)
+    environment:
+      - NEO4J_AUTH=neo4j/fenomenologia2024
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - bio_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  bio_net:
+    driver: bridge
+
+volumes:
+  neo4j_data:

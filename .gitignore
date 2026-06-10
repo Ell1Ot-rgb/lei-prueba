@@ -1,0 +1,44 @@
+# Archivos grandes
+lightrag.tar.gz
+*.tar.gz
+*.zip
+
+# Llaves SSH y credenciales (seguridad)
+*.pem
+id_ed25519
+id_ed25519_nethunter
+id_ed25519*
+*_key*
+
+# Cachés de Python e IDEs
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.idea/
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Archivos de estado y bases de datos locales
+*.pkl
+*.db
+*.log
+*.chroma
+*.index
+*.vectors
+
+# Ignorar archivos locales temporales de LightRAG
+/dict_*.json
+/kv_*.json
+/graph_*.json
+/chunks_*.json
+/doc_*.json
+/vector_*.json
+/embeddings_*.json
+sincronizacion-obsidiane/.env
+sincronizacion-obsidiane/*.env
+antigravity-connect/
+

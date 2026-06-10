@@ -42,7 +42,10 @@ try:
     def patched_node_bulk(*args, **kwargs):
         query = original_node_bulk(*args, **kwargs)
         if isinstance(query, str):
+            # Limpiar cualquier espacio inconsistente y aplicar el parche de etiquetas
+            query = query.replace("SET n:$(node.labels)", "WITH n, node CALL apoc.create.addLabels(n, node.labels) YIELD node AS n_fixed")
             query = re.sub(r"SET\s+n:\$\(node\.labels\)", "WITH n, node CALL apoc.create.addLabels(n, node.labels) YIELD node AS n_fixed", query)
+            
             query = query.replace('CALL db.create.setNodeVectorProperty(n, "name_embedding", node.name_embedding)', 'SET n.name_embedding = node.name_embedding')
             query = query.replace('CALL db.create.setNodeVectorProperty(n, "name_embedding", $entity_data.name_embedding)', 'SET n.name_embedding = $entity_data.name_embedding')
         return query

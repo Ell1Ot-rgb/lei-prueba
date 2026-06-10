@@ -1,0 +1,7 @@
+numpy
+mmh3
+structlog
+python-dotenv
+neo4j
+pyyaml
+psutil

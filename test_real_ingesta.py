@@ -2,12 +2,11 @@ import requests
 import os
 
 FILES = [
-    "sincronizacion-obsidiane/vault/50_Entrada/test_biologia_sintetica.md",
-    "sincronizacion-obsidiane/vault/50_Entrada/test_ia_neuronal.md",
-    "sincronizacion-obsidiane/vault/50_Entrada/test_convergencia_sistema.md",
-    "sincronizacion-obsidiane/vault/50_Entrada/test_etica_sistemas.md",
-    "sincronizacion-obsidiane/vault/50_Entrada/test_cuantica_grafos.md",
-    "sincronizacion-obsidiane/vault/50_Entrada/test_evolucion_adaptativa.md"
+    "sincronizacion-obsidiane/vault/50_Entrada/test_hardware_neuromorfico.md",
+    "sincronizacion-obsidiane/vault/50_Entrada/test_arquitectura_cognitiva.md",
+    "sincronizacion-obsidiane/vault/50_Entrada/test_edge_computing.md",
+    "sincronizacion-obsidiane/vault/50_Entrada/test_memoria_holografica.md",
+    "sincronizacion-obsidiane/vault/50_Entrada/test_enjambre.md"
 ]
 
 URL_LIGHTRAG = "http://localhost:8000/refinar"

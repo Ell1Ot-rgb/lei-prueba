@@ -1,0 +1,209 @@
+{
+  "name": "Workflow IA con MCP Integrado",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true
+      },
+      "id": "chat-trigger-mcp",
+      "name": "Chat IA",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres el guardián del Cerebro Digital. Tienes herramientas MCP conectadas a bases de datos de grafos (LightRAG y Memgraph). Usa SIEMPRE tus herramientas MCP para responder consultas."
+        }
+      },
+      "id": "agent-mcp",
+      "name": "Agente IA (MCP)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {}
+      },
+      "id": "model-groq-mcp",
+      "name": "Groq Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        220,
+        200
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "TU_CRED_GROQ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Herramientas inyectadas directamente desde el Servidor MCP (LightRAG y Memgraph).",
+        "toolId": "mcp-server-connection"
+      },
+      "id": "mcp-tool-node",
+      "name": "Herramientas MCP",
+      "type": "@n8n/n8n-nodes-langchain.toolMcp",
+      "typeVersion": 1,
+      "position": [
+        380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "triggerOn": "fileAdded",
+        "path": "/vault/50_Entrada",
+        "events": [
+          "add"
+        ],
+        "options": {
+          "ignoredFiles": "**/.obsidian/**, **/*.json"
+        }
+      },
+      "id": "file-trigger",
+      "name": "Entrada Local",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=cat '{{ $json.path }}'"
+      },
+      "id": "read-file",
+      "name": "Leer Archivo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/refinar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $json.stdout }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $('Entrada Local').item.json.name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-insert",
+      "name": "Ingesta Semántica (VPS)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        440,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=mv '{{ $(\"Entrada Local\").item.json.path }}' '/vault/05_Fenomenos/{{ $(\"Entrada Local\").item.json.name }}'"
+      },
+      "id": "move-file",
+      "name": "Mover a Fenomenos",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        -300
+      ]
+    }
+  ],
+  "connections": {
+    "Chat IA": {
+      "main": [
+        [
+          {
+            "node": "Agente IA (MCP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente IA (MCP)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Herramientas MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente IA (MCP)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada Local": {
+      "main": [
+        [
+          {
+            "node": "Leer Archivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Archivo": {
+      "main": [
+        [
+          {
+            "node": "Ingesta Semántica (VPS)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingesta Semántica (VPS)": {
+      "main": [
+        [
+          {
+            "node": "Mover a Fenomenos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

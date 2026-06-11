@@ -1,0 +1,222 @@
+{
+  "name": "Arquitectura Unificada (Local -> VPS)",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "fileAdded",
+        "path": "/vault/50_Entrada",
+        "events": [
+          "add"
+        ],
+        "options": {
+          "ignoredFiles": "**/.obsidian/**, **/*.json"
+        }
+      },
+      "id": "e9c2c62c-8067-4f40-811c-99f6b9bc6551",
+      "name": "Local File Trigger",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=cat '{{ $json.path }}'"
+      },
+      "id": "d047b19a-9896-4871-bb6d-31804245645c",
+      "name": "Leer Archivo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/refinar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $json.stdout }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $('Local File Trigger').item.json.name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1f7a7eb-6c9c-48c0-82a1-6a031e07b8b2",
+      "name": "Enviar a VPS (LightRAG)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=mv '{{ $(\"Local File Trigger\").item.json.path }}' '/vault/05_Fenomenos/{{ $(\"Local File Trigger\").item.json.name }}'"
+      },
+      "id": "402e1de7-3134-4b5b-8eb1-e23eab977053",
+      "name": "Mover a Fenomenos",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "public": true
+      },
+      "id": "b3e32b0f-86f7-4171-8bc6-b18c66e2c39d",
+      "name": "Chat Trigger (IA)",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "7ac2b6c7-3914-419b-abf9-c6e7a2b9a107",
+      "name": "Agente de IA",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {}
+      },
+      "id": "90e6b528-9122-445a-a436-b52b4129b057",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        220,
+        500
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "TU_CRED_GROQ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "consultar_memoria_semantica",
+        "description": "Busca en la memoria semántica de grafos (LightRAG). Usa esto cuando necesites investigar conceptos.",
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/query",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $fromAI('query', 'La pregunta semántica a buscar') }}"
+            },
+            {
+              "name": "mode",
+              "value": "global"
+            }
+          ]
+        }
+      },
+      "id": "3bb60cb9-9520-410c-bac3-5e7bc5a40a23",
+      "name": "Herramienta LightRAG (Red VPS)",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        380,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Local File Trigger": {
+      "main": [
+        [
+          {
+            "node": "Leer Archivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Archivo": {
+      "main": [
+        [
+          {
+            "node": "Enviar a VPS (LightRAG)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar a VPS (LightRAG)": {
+      "main": [
+        [
+          {
+            "node": "Mover a Fenomenos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger (IA)": {
+      "main": [
+        [
+          {
+            "node": "Agente de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de IA",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Herramienta LightRAG (Red VPS)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de IA",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

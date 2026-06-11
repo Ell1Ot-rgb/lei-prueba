@@ -64,7 +64,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://lightrag:8000/refinar",
+        "url": "http://159.203.164.103:8000/refinar",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -92,7 +92,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://memgraph_rag_server:7688/indexar",
+        "url": "http://159.203.164.103:7688/indexar",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [

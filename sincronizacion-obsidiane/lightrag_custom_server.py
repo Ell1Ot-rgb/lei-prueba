@@ -32,12 +32,15 @@ class RefinarRequest(BaseModel):
 # ============================================================================
 try:
     import graphiti_core.models.nodes.node_db_queries as node_queries
+    import graphiti_core.models.edges.edge_db_queries as edge_queries
     import graphiti_core.graph_queries as graph_queries
     import graphiti_core.search.search_utils as search_utils
     from openai.resources.chat.completions import AsyncCompletions
+    import graphiti_core.driver.neo4j.operations.entity_node_ops as neo4j_ops
+    import graphiti_core.driver.neo4j.operations.entity_edge_ops as neo4j_edge_ops
+    import graphiti_core.utils.bulk_utils as bulk_utils
 
     # 1. Parche de Etiquetas y Vectores (Neo4j)
-    # ... (keeping existing logic for vectors)
     original_node_bulk = node_queries.get_entity_node_save_bulk_query
     def patched_node_bulk(*args, **kwargs):
         query = original_node_bulk(*args, **kwargs)
@@ -46,10 +49,60 @@ try:
             query = query.replace("SET n:$(node.labels)", "WITH n, node CALL apoc.create.addLabels(n, node.labels) YIELD node AS n_fixed")
             query = re.sub(r"SET\s+n:\$\(node\.labels\)", "WITH n, node CALL apoc.create.addLabels(n, node.labels) YIELD node AS n_fixed", query)
             
+            # Reemplazos con comillas dobles y simples
             query = query.replace('CALL db.create.setNodeVectorProperty(n, "name_embedding", node.name_embedding)', 'SET n.name_embedding = node.name_embedding')
             query = query.replace('CALL db.create.setNodeVectorProperty(n, "name_embedding", $entity_data.name_embedding)', 'SET n.name_embedding = $entity_data.name_embedding')
+            query = query.replace("CALL db.create.setNodeVectorProperty(n, 'name_embedding', node.name_embedding)", "SET n.name_embedding = node.name_embedding")
+            query = query.replace("CALL db.create.setNodeVectorProperty(n, 'name_embedding', $entity_data.name_embedding)", "SET n.name_embedding = $entity_data.name_embedding")
         return query
+    
+    original_node_save = node_queries.get_entity_node_save_query
+    def patched_node_save(*args, **kwargs):
+        query = original_node_save(*args, **kwargs)
+        if isinstance(query, str):
+            query = query.replace('CALL db.create.setNodeVectorProperty(n, "name_embedding", node.name_embedding)', 'SET n.name_embedding = node.name_embedding')
+            query = query.replace('CALL db.create.setNodeVectorProperty(n, "name_embedding", $entity_data.name_embedding)', 'SET n.name_embedding = $entity_data.name_embedding')
+            query = query.replace("CALL db.create.setNodeVectorProperty(n, 'name_embedding', node.name_embedding)", "SET n.name_embedding = node.name_embedding")
+            query = query.replace("CALL db.create.setNodeVectorProperty(n, 'name_embedding', $entity_data.name_embedding)", "SET n.name_embedding = $entity_data.name_embedding")
+        return query
+
+    # 1.1 Parche de Relaciones y Vectores (Neo4j)
+    original_edge_bulk = edge_queries.get_entity_edge_save_bulk_query
+    def patched_edge_bulk(*args, **kwargs):
+        query = original_edge_bulk(*args, **kwargs)
+        if isinstance(query, str):
+            query = query.replace('CALL db.create.setRelationshipVectorProperty(e, "fact_embedding", edge.fact_embedding)', 'SET e.fact_embedding = edge.fact_embedding')
+            query = query.replace('CALL db.create.setRelationshipVectorProperty(e, "fact_embedding", $edge_data.fact_embedding)', 'SET e.fact_embedding = $edge_data.fact_embedding')
+            query = query.replace("CALL db.create.setRelationshipVectorProperty(e, 'fact_embedding', edge.fact_embedding)", "SET e.fact_embedding = edge.fact_embedding")
+            query = query.replace("CALL db.create.setRelationshipVectorProperty(e, 'fact_embedding', $edge_data.fact_embedding)", "SET e.fact_embedding = $edge_data.fact_embedding")
+        return query
+
+    original_edge_save = edge_queries.get_entity_edge_save_query
+    def patched_edge_save(*args, **kwargs):
+        query = original_edge_save(*args, **kwargs)
+        if isinstance(query, str):
+            query = query.replace('CALL db.create.setRelationshipVectorProperty(e, "fact_embedding", edge.fact_embedding)', 'SET e.fact_embedding = edge.fact_embedding')
+            query = query.replace('CALL db.create.setRelationshipVectorProperty(e, "fact_embedding", $edge_data.fact_embedding)', 'SET e.fact_embedding = $edge_data.fact_embedding')
+            query = query.replace("CALL db.create.setRelationshipVectorProperty(e, 'fact_embedding', edge.fact_embedding)", "SET e.fact_embedding = edge.fact_embedding")
+            query = query.replace("CALL db.create.setRelationshipVectorProperty(e, 'fact_embedding', $edge_data.fact_embedding)", "SET e.fact_embedding = $edge_data.fact_embedding")
+        return query
+
+    # Registrar parches en namespaces de importación
     node_queries.get_entity_node_save_bulk_query = patched_node_bulk
+    node_queries.get_entity_node_save_query = patched_node_save
+    
+    neo4j_ops.get_entity_node_save_bulk_query = patched_node_bulk
+    neo4j_ops.get_entity_node_save_query = patched_node_save
+
+    bulk_utils.get_entity_node_save_bulk_query = patched_node_bulk
+
+    edge_queries.get_entity_edge_save_bulk_query = patched_edge_bulk
+    edge_queries.get_entity_edge_save_query = patched_edge_save
+
+    neo4j_edge_ops.get_entity_edge_save_bulk_query = patched_edge_bulk
+    neo4j_edge_ops.get_entity_edge_save_query = patched_edge_save
+    
+    bulk_utils.get_entity_edge_save_bulk_query = patched_edge_bulk
 
     def patched_sim(v1, v2, p=None):
         return f"reduce(s=0, i in range(0, size({v1})-1) | s + ({v1}[i] * {v2}[i]))"
@@ -68,8 +121,6 @@ try:
             else:
                 messages.insert(0, {"role": "system", "content": "Output must be in valid JSON format."})
         
-        # Rate Limit preventivo (3s entre llamadas globales)
-        # Nota: Esto es tosco pero efectivo para un solo worker
         return await original_async_create(self, *args, **kwargs)
     
     AsyncCompletions.create = patched_async_create
@@ -89,8 +140,9 @@ def retry_with_backoff(retries=5, backoff_in_seconds=5):
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    # 429: Rate Limit, 503: Service Unavailable
-                    if x == retries or ("429" not in str(e) and "50" not in str(e)):
+                    # 429: Rate Limit, 503: Service Unavailable, o mensaje de rate limit
+                    err_str = str(e).lower()
+                    if x == retries or ("429" not in err_str and "50" not in err_str and "rate limit" not in err_str):
                         logger.error(f"Error persistente tras {x} reintentos: {e}")
                         raise
                     
@@ -204,7 +256,17 @@ async def graphiti_worker():
                 # Aumentamos a 3 segundos para seguridad.
                 await asyncio.sleep(3.0)
                 
-                await graphiti_instance.add_episode(name=task.get("name"), episode_body=task.get("content"), source_description="Organic Brain", reference_time=datetime.datetime.now())
+                # Envolver add_episode con retry logic ante rate limits de Groq/Gemini
+                @retry_with_backoff(retries=5, backoff_in_seconds=5)
+                async def _persist():
+                    await graphiti_instance.add_episode(
+                        name=task.get("name"), 
+                        episode_body=task.get("content"), 
+                        source_description="Organic Brain", 
+                        reference_time=datetime.datetime.now()
+                    )
+                
+                await _persist()
                 logger.info(f"✓ ÉXITO: Concepto '{task.get('name')}' persistido.")
         except Exception as e: 
             logger.error(f"Error crítico en persistencia: {e}")
@@ -223,6 +285,22 @@ async def refinar(req: RefinarRequest):
     res = f"{req.texto}. Contexto: {req.contexto}."
     if graphiti_active: index_queue.put_nowait({"name": req.contexto or "Idea", "content": res})
     return {"texto_refinado": res}
+
+class QueryRequest(BaseModel):
+    query: str
+    mode: str = "global"
+
+@app.post("/query")
+async def query_endpoint(req: QueryRequest):
+    if not graphiti_active or not graphiti_instance:
+        return {"respuesta": "Graphiti no está activo aún."}
+    try:
+        # Usamos search u operaciones de lectura de graphiti
+        results = await graphiti_instance.search(req.query)
+        # Convert results to a serializable format
+        return {"respuesta": str(results)}
+    except Exception as e:
+        return {"respuesta": f"Error buscando en Graphiti: {e}"}
 
 if __name__ == "__main__":
     import uvicorn

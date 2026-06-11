@@ -36,9 +36,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 2G
         reservations:
-          memory: 512M
+          memory: 256M
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000')"]
       interval: 10s
@@ -68,6 +68,12 @@ services:
     depends_on:
       memgraph:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
     networks:
       - RAG_network
 
@@ -82,9 +88,18 @@ services:
     environment:
       - NEO4J_AUTH=neo4j/fenomenologia2024
       - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_server_memory_heap_initial__size=512M
+      - NEO4J_server_memory_heap_max__size=1G
+      - NEO4J_server_memory_pagecache_size=512M
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
       interval: 10s
@@ -139,11 +154,37 @@ services:
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=UTC
+      - NODE_OPTIONS=--max-old-space-size=512
+      - NODES_EXCLUDE=[]
+      - N8N_BLOCK_FS_WRITE_ACCESS=false
+      - N8N_BLOCK_FS_READ_ACCESS=false
+      - N8N_RESTRICT_FILE_ACCESS_TO=/vault
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - EXECUTIONS_DATA_SAVE_ON_PROGRESS=true
     volumes:
       - n8n_data:/home/node/.n8n
       - ./vault:/vault  # Montamos el Vault de Obsidian para que n8n pueda leer/escribir
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
     networks:
       - RAG_network
+
+  mcp_gateway:
+    build:
+      context: ./mcp_gateway
+      dockerfile: Dockerfile
+    container_name: mcp_gateway
+    environment:
+      - LIGHTRAG_URL=http://159.203.164.103:8000
+      - MEMGRAPH_URI=bolt://159.203.164.103:7687
+    networks:
+      - RAG_network
+    restart: unless-stopped
 
 # ─── Redes e Infraestructura ───────────────────────────────────────────────
 networks:

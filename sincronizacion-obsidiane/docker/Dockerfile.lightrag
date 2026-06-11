@@ -36,7 +36,8 @@ RUN pip install --no-cache-dir \
     loguru>=0.7.2 \
     google-generativeai \
     graphiti-core \
-    google-genai
+    google-genai \
+    boto3
 
 RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/cpu \

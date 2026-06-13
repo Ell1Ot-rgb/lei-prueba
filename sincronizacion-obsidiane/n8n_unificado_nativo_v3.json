@@ -1,5 +1,5 @@
 {
-  "name": "Agente IA Nativo OMNISCIENTE (Versi\u00f3n 3 - Expansi\u00f3n)",
+  "name": "Agente IA Nativo OMNISCIENTE (Versi\u00f3n 3 - Expansi\u00f3n M\u00e1xima)",
   "nodes": [
     {
       "id": "chat-trigger-1",
@@ -374,51 +374,6 @@
       }
     },
     {
-      "id": "telegram-trigger",
-      "name": "Telegram Trigger",
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1,
-      "position": [
-        200,
-        1400
-      ],
-      "parameters": {
-        "updates": [
-          "message"
-        ]
-      }
-    },
-    {
-      "id": "agent-telegram",
-      "name": "Agente IA (Telegram)",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.6,
-      "position": [
-        420,
-        1400
-      ],
-      "parameters": {
-        "options": {
-          "systemMessage": "Eres el Agente IA de bolsillo del usuario. Tienes acceso al cerebro Graphiti."
-        }
-      }
-    },
-    {
-      "id": "telegram-reply",
-      "name": "Telegram Reply",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [
-        600,
-        1400
-      ],
-      "parameters": {
-        "operation": "sendMessage",
-        "chatId": "={{ $json.message.chat.id }}",
-        "text": "={{ $json.output }}"
-      }
-    },
-    {
       "id": "obsidian-url-trigger",
       "name": "Obsidian URL Monitor",
       "type": "n8n-nodes-base.localFileTrigger",
@@ -519,13 +474,6 @@
             "type": "ai_languageModel",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Agente IA (Telegram)",
-            "type": "ai_languageModel",
-            "index": 0
-          }
         ]
       ]
     },
@@ -538,13 +486,6 @@
             "type": "ai_tool",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Agente IA (Telegram)",
-            "type": "ai_tool",
-            "index": 0
-          }
         ]
       ]
     },
@@ -554,13 +495,6 @@
         [
           {
             "node": "Agente IA (Cerebro)",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Agente IA (Telegram)",
             "type": "ai_tool",
             "index": 0
           }
@@ -639,28 +573,6 @@
         [
           {
             "node": "Auto-Merge Duplicates",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Telegram Trigger": {
-      "main": [
-        [
-          {
-            "node": "Agente IA (Telegram)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Agente IA (Telegram)": {
-      "main": [
-        [
-          {
-            "node": "Telegram Reply",
             "type": "main",
             "index": 0
           }

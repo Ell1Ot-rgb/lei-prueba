@@ -6,7 +6,7 @@ Esta tercera versión expande tu ecosistema nativo para hacerlo omnipresente. Ah
 
 1. En tu instancia local de n8n, haz clic en **Import from File...**
 2. Selecciona el archivo `n8n_unificado_nativo_v3.json`.
-3. Activa las credenciales de Telegram si vas a usar la Zona 5.
+
 
 ---
 
@@ -14,15 +14,9 @@ Esta tercera versión expande tu ecosistema nativo para hacerlo omnipresente. Ah
 
 *(Las Zonas 1 a 4 permanecen activas: Chatbot n8n, Auto-Sync Obsidian, Reporte Diario 8 AM, Mantenimiento de Colisiones)*
 
-### 📱 Zona 5: Interfaz Móvil (Telegram Bot) [¡NUEVO!]
-Tu sistema ahora te acompaña en el bolsillo. He replicado el Cerebro IA (conectado a tus mismas herramientas de DigitalOcean) pero con gatillo directo a Telegram.
-* **Flujo:** Envías un mensaje por Telegram -> El Agente busca en Neo4j/Graphiti -> Te responde por Telegram.
-* **Configuración Requerida:**
-  - Crea un bot con el [BotFather](https://t.me/botfather) en Telegram.
-  - Pega el **Token** en las credenciales del nodo **Telegram Trigger**.
-  - Selecciona tus mismas credenciales de Groq en el modelo.
 
-### 🕸️ Zona 6: Ingesta Web (Auto-Scraping de URLs) [¡NUEVO!]
+
+### 🕸️ Zona 5: Ingesta Web (Auto-Scraping de URLs) [¡NUEVO!]
 Tus notas en Obsidian ya no son estáticas. Si creas una nota con URLs, n8n las visitará, leerá su contenido web y lo inyectará directamente al cerebro de Graphiti.
 * **Flujo:** Guardas un link en Obsidian -> n8n hace un HTTP GET a la URL -> Extrae el texto HTML puro -> Lo inyecta a `8000/refinar`.
 * **Configuración Requerida:**

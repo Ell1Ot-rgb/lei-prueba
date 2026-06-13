@@ -1,0 +1,704 @@
+{
+  "name": "Agente IA Nativo OMNISCIENTE (Versi\u00f3n 3 - Expansi\u00f3n)",
+  "nodes": [
+    {
+      "id": "chat-trigger-1",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "public": true
+      }
+    },
+    {
+      "id": "agent-1",
+      "name": "Agente IA (Cerebro)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un Agente IA conectado a DigitalOcean. Tienes herramientas clave:\n1. Consultar Grafo\n2. Indexar Conocimiento\n3. Extraer M\u00e9tricas Neo4j\nUsa Cypher para obtener m\u00e9tricas o fusionar nodos si detectas colisiones."
+        }
+      }
+    },
+    {
+      "id": "llm-groq-1",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        380,
+        500
+      ],
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "options": {}
+      }
+    },
+    {
+      "id": "tool-consultar",
+      "name": "1. Consultar Grafo",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        500
+      ],
+      "parameters": {
+        "name": "consultar_grafo",
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/consultar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $fromAI('query') }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tool-indexar",
+      "name": "2. Indexar Conocimiento",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        650,
+        500
+      ],
+      "parameters": {
+        "name": "indexar_conocimiento",
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/refinar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $fromAI('texto') }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $fromAI('contexto') }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tool-cypher",
+      "name": "3. Neo4j Cypher",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        500
+      ],
+      "parameters": {
+        "name": "neo4j_cypher",
+        "method": "POST",
+        "url": "http://159.203.164.103:7474/db/neo4j/tx/commit",
+        "sendBody": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic bmVvNGo6ZmVub21lbm9sb2dpYTIwMjQ="
+            }
+          ]
+        },
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "statements",
+              "value": "={{ [{\"statement\": $fromAI('cypher_query')}] }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "local-file-trigger",
+      "name": "Obsidian Trigger",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        800
+      ],
+      "parameters": {
+        "triggerOn": "folder",
+        "path": "/ruta/a/tu/vault/obsidian",
+        "events": [
+          "add",
+          "change"
+        ]
+      }
+    },
+    {
+      "id": "read-file",
+      "name": "Read Markdown",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        400,
+        800
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $json.path }}"
+      }
+    },
+    {
+      "id": "http-sync",
+      "name": "Sync to DO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        600,
+        800
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/refinar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $binary.data.data }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $json.name }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cron-morning",
+      "name": "8 AM Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        200,
+        1000
+      ],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 8,
+              "minute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "neo4j-fetch",
+      "name": "Fetch New Memories",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        400,
+        1000
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:7474/db/neo4j/tx/commit",
+        "sendBody": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic bmVvNGo6ZmVub21lbm9sb2dpYTIwMjQ="
+            }
+          ]
+        },
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "statements",
+              "value": "[{\"statement\": \"MATCH (n:Episodic) RETURN n.name LIMIT 10\"}]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "write-report",
+      "name": "Write Daily Report",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        1000
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileSelector": "/ruta/a/tu/vault/obsidian/Reporte_Diario_{{ $now.format('yyyy-MM-dd') }}.md",
+        "fileContent": "={{ JSON.stringify($json) }}"
+      }
+    },
+    {
+      "id": "cron-weekly",
+      "name": "Weekly Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        200,
+        1200
+      ],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyWeek",
+              "weekday": 0,
+              "hour": 2,
+              "minute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "neo4j-collisions",
+      "name": "Find Duplicates",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        400,
+        1200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:7474/db/neo4j/tx/commit",
+        "sendBody": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic bmVvNGo6ZmVub21lbm9sb2dpYTIwMjQ="
+            }
+          ]
+        },
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "statements",
+              "value": "[{\"statement\": \"MATCH (n:Entity) WITH n.name as name, count(n) as count WHERE count > 1 RETURN name, count\"}]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "neo4j-merge",
+      "name": "Auto-Merge Duplicates",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        600,
+        1200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:7474/db/neo4j/tx/commit",
+        "sendBody": true,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic bmVvNGo6ZmVub21lbm9sb2dpYTIwMjQ="
+            }
+          ]
+        },
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "statements",
+              "value": "[{\"statement\": \"MATCH (n:Entity {name: '\" + $json.name + \"'}) WITH collect(n) as nodes CALL apoc.refactor.mergeNodes(nodes) YIELD node RETURN node\"}]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        1400
+      ],
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      }
+    },
+    {
+      "id": "agent-telegram",
+      "name": "Agente IA (Telegram)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        420,
+        1400
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres el Agente IA de bolsillo del usuario. Tienes acceso al cerebro Graphiti."
+        }
+      }
+    },
+    {
+      "id": "telegram-reply",
+      "name": "Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        600,
+        1400
+      ],
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "={{ $json.output }}"
+      }
+    },
+    {
+      "id": "obsidian-url-trigger",
+      "name": "Obsidian URL Monitor",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        1600
+      ],
+      "parameters": {
+        "triggerOn": "folder",
+        "path": "/ruta/a/tu/vault/Links",
+        "events": [
+          "add",
+          "change"
+        ]
+      }
+    },
+    {
+      "id": "html-extract",
+      "name": "Extract HTML",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 1,
+      "position": [
+        400,
+        1600
+      ],
+      "parameters": {
+        "extractionValues": {
+          "values": [
+            {
+              "key": "content",
+              "cssSelector": "body",
+              "returnValue": "text"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sync-url-do",
+      "name": "Ingesta Web en DO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        600,
+        1600
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://159.203.164.103:8000/refinar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texto",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "contexto",
+              "value": "={{ $json.url }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-url",
+      "name": "Fetch Webpage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        1600
+      ],
+      "parameters": {
+        "url": "={{ $json.content }}"
+      }
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agente IA (Cerebro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "main": [],
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente IA (Cerebro)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente IA (Telegram)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Consultar Grafo": {
+      "main": [],
+      "ai_tool": [
+        [
+          {
+            "node": "Agente IA (Cerebro)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente IA (Telegram)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Indexar Conocimiento": {
+      "main": [],
+      "ai_tool": [
+        [
+          {
+            "node": "Agente IA (Cerebro)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente IA (Telegram)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Neo4j Cypher": {
+      "main": [],
+      "ai_tool": [
+        [
+          {
+            "node": "Agente IA (Cerebro)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obsidian Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Markdown": {
+      "main": [
+        [
+          {
+            "node": "Sync to DO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch New Memories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch New Memories": {
+      "main": [
+        [
+          {
+            "node": "Write Daily Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Find Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Auto-Merge Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agente IA (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente IA (Telegram)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obsidian URL Monitor": {
+      "main": [
+        [
+          {
+            "node": "Fetch Webpage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Webpage": {
+      "main": [
+        [
+          {
+            "node": "Extract HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract HTML": {
+      "main": [
+        [
+          {
+            "node": "Ingesta Web en DO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
